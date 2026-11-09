@@ -25,15 +25,31 @@ export function ogSvg(result: ResultResponse): string {
 </svg>`;
 }
 
-export async function renderOg(result: ResultResponse): Promise<Uint8Array> {
-  ready ??= initWasm(wasm);
+async function ensureWasm(): Promise<void> {
+  ready ??= initWasm(wasm).catch((e: unknown) => {
+    ready = undefined;
+    throw e;
+  });
   await ready;
-  const png = new Resvg(ogSvg(result), {
+}
+
+export async function renderOg(result: ResultResponse): Promise<Uint8Array> {
+  await ensureWasm();
+  const resvg = new Resvg(ogSvg(result), {
     font: {
       fontBuffers: [jetbrainsMedium, jetbrainsRegular, newsreader].map((f) => new Uint8Array(f)),
       defaultFontFamily: "JetBrains Mono",
       loadSystemFonts: false,
     },
   });
-  return png.render().asPng();
+  try {
+    const image = resvg.render();
+    try {
+      return image.asPng();
+    } finally {
+      image.free();
+    }
+  } finally {
+    resvg.free();
+  }
 }
