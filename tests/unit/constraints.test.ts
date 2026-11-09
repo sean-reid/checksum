@@ -95,6 +95,7 @@ describe("check", () => {
     expect(ok({ kind: "noneContains", letter: "e" }, ["tar", "oil"])).toBe(true);
     expect(ok({ kind: "alphabetical" }, ["ant", "bee", "cat"])).toBe(true);
     expect(ok({ kind: "alphabetical" }, ["ant", "cat", "bee"])).toBe(false);
+    expect(ok({ kind: "alphabetical" }, ["ant", "ant", "bee"])).toBe(false);
   });
 
   it("counts words with adjacent equal letters", () => {
