@@ -27,17 +27,33 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <header class="masthead">
-      <h1 class="wordmark">checksum</h1>
-    </header>
-    <main id="main">
-      <p class="lede">
-        A daily word puzzle. Find the phrase that fits every rule, then read off its checksum.
-      </p>
-    </main>
-    <footer class="colophon">
-      <p><a href="https://github.com/sean-reid/checksum">Source</a></p>
-    </footer>
+    <div class="page">
+      <header class="masthead">
+        <h1 class="wordmark">checksum</h1>
+        <p class="meta" id="meta"></p>
+        <nav class="tools" aria-label="Page">
+          <button
+            type="button"
+            class="link"
+            id="stats-toggle"
+            aria-expanded="false"
+            aria-controls="stats"
+          >
+            stats
+          </button>
+          <button type="button" class="link" id="theme-toggle"></button>
+        </nav>
+      </header>
+      <section id="stats" class="stats" hidden></section>
+      <p id="notice" class="notice" role="status"></p>
+      <main id="main"></main>
+      <footer class="colophon">
+        <a href="https://github.com/sean-reid/checksum">Source</a>
+        <a href="https://en.wikipedia.org/wiki/Scrabble_letter_distributions"
+          >Scrabble tile values</a
+        >
+      </footer>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
