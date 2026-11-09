@@ -148,6 +148,42 @@ test("reveal gives up the day and blocks a later solve", async ({ request }) => 
   expect(after.solves).toBe(before.solves);
 });
 
+test("a start token for a closed puzzle is refused on solve and reveal", async ({ request }) => {
+  test.skip(number < 2, "no closed puzzle number exists yet");
+  const token = await issueStart("dev", {
+    number: number - 2,
+    startMs: Date.now(),
+    nonce: newNonce(),
+  });
+  expect((await solve(request, token, solution)).status()).toBe(404);
+  expect((await request.post("/api/reveal", { data: { token } })).status()).toBe(404);
+});
+
+test("reveal after a solve keeps the solve and adds no give-up", async ({ request }) => {
+  const { token } = await start(request);
+  const solved = (await (await solve(request, token, solution)).json()) as Extract<
+    SolveResponse,
+    { ok: true }
+  >;
+  elapsedTimes.push(solved.elapsedMs);
+  const before = await stats(request);
+  expect((await request.post("/api/reveal", { data: { token } })).status()).toBe(200);
+  const after = await stats(request);
+  expect(after.solves).toBe(before.solves);
+  expect(after.giveUps).toBe(before.giveUps);
+  const again = (await (await solve(request, token, solution)).json()) as typeof solved;
+  expect(again.elapsedMs).toBe(solved.elapsedMs);
+});
+
+test("revealing twice counts one give-up", async ({ request }) => {
+  const before = await stats(request);
+  const { token } = await start(request);
+  for (let i = 0; i < 2; i++) {
+    expect((await request.post("/api/reveal", { data: { token } })).status()).toBe(200);
+  }
+  expect((await stats(request)).giveUps).toBe(before.giveUps + 1);
+});
+
 test("stats report the median of the solves", async ({ request }) => {
   const body = await stats(request);
   expect(body.number).toBe(number);
@@ -165,4 +201,13 @@ test("stats report the median of the solves", async ({ request }) => {
 test("unknown api paths are 404", async ({ request }) => {
   expect((await request.get("/api/nope")).status()).toBe(404);
   expect(await (await request.get("/api/health")).json()).toEqual({ ok: true });
+});
+
+test("the rate limit answers 429 within 70 slot requests", async ({ request }) => {
+  const { token } = await start(request);
+  let status = 0;
+  for (let i = 0; i < 70 && status !== 429; i++) {
+    status = (await request.post("/api/slot", { data: { token, slot: 0, word: "abc" } })).status();
+  }
+  expect(status).toBe(429);
 });
