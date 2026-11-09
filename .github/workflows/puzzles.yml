@@ -44,11 +44,17 @@ jobs:
           if [[ "$start" < "$first" ]]; then start=$first; fi
           end=$(date -u -d '+15 days' +%F)
           days=$(( ($(date -u -d "$end" +%s) - $(date -u -d "$start" +%s)) / 86400 + 1 ))
-          tools/gen/target/release/checksum-gen range "$start" "$days" > range.json
-          echo "generated $days puzzles from $start"
+          if [[ "$days" -lt 1 ]]; then
+            echo "no puzzles are due before $first"
+            echo '[]' > range.json
+          else
+            tools/gen/target/release/checksum-gen range "$start" "$days" > range.json
+            echo "generated $days puzzles from $start"
+          fi
       - name: Drop keys already in KV
         run: |
           npx wrangler kv key list --namespace-id "$KV_NAMESPACE" --remote > existing.json
+          jq -e 'type == "array"' existing.json > /dev/null
           jq --slurpfile have existing.json \
             '($have[0] | map(.name)) as $names | map(select(.key | IN($names[]) | not))' \
             range.json > new.json
