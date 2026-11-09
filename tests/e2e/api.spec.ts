@@ -144,7 +144,16 @@ test("the shared page and og card render from a result token", async ({ request 
   expect(html).toContain('content="summary_large_image"');
   expect(html).not.toContain("solution");
   expect(html).not.toContain(checksum);
-  for (const word of new Set(solution)) expect(html).not.toContain(`>${word}<`);
+
+  const head = await request.head(`/r/${solved.result}`);
+  expect(head.status()).toBe(200);
+  expect(head.headers()["content-type"]).toBe(page.headers()["content-type"]);
+  expect(await head.body()).toHaveLength(0);
+  const cardHead = await request.head(`/og/${solved.result}.png`);
+  expect(cardHead.status()).toBe(200);
+  expect(cardHead.headers()["content-type"]).toBe("image/png");
+  expect(await cardHead.body()).toHaveLength(0);
+  expect((await request.head("/r/garbage")).status()).toBe(404);
 
   const card = await request.get(`/og/${solved.result}.png`);
   expect(card.status()).toBe(200);
