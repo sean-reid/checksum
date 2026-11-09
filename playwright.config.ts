@@ -3,6 +3,21 @@ import { defineConfig, devices } from "@playwright/test";
 const port = 8787;
 const apiPort = 8788;
 const apiState = ".wrangler/api-state";
+const playPort = 8789;
+const playState = ".wrangler/play-state";
+
+const playProject = (width: number, height: number) => ({
+  name: `play-${width}`,
+  testMatch: /play\.spec\.ts/,
+  use: {
+    ...devices["Desktop Chrome"],
+    baseURL: `http://127.0.0.1:${playPort}`,
+    viewport: { width, height },
+    hasTouch: width < 1024,
+    timezoneId: "UTC",
+    permissions: ["clipboard-read", "clipboard-write"],
+  },
+});
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -42,10 +57,13 @@ export default defineConfig({
       dependencies: ["mobile", "tablet", "desktop"],
       use: { baseURL: `http://127.0.0.1:${apiPort}` },
     },
+    playProject(375, 740),
+    playProject(768, 1024),
+    playProject(1024, 800),
   ],
   webServer: [
     {
-      command: `npm run build && npx wrangler dev --port ${port} --ip 127.0.0.1`,
+      command: `npm run build && npx wrangler dev --port ${port} --ip 127.0.0.1 --var TOKEN_SECRET:dev`,
       url: `http://127.0.0.1:${port}/`,
       reuseExistingServer: !process.env.CI,
       timeout: 180_000,
@@ -53,6 +71,12 @@ export default defineConfig({
     {
       command: `node scripts/seed-local.ts ${apiState} && npx wrangler dev --port ${apiPort} --ip 127.0.0.1 --persist-to ${apiState} --var TOKEN_SECRET:dev`,
       url: `http://127.0.0.1:${apiPort}/api/health`,
+      reuseExistingServer: false,
+      timeout: 180_000,
+    },
+    {
+      command: `node scripts/seed-local.ts ${playState} && npx wrangler dev --port ${playPort} --ip 127.0.0.1 --persist-to ${playState} --var TOKEN_SECRET:dev`,
+      url: `http://127.0.0.1:${playPort}/api/health`,
       reuseExistingServer: false,
       timeout: 180_000,
     },
