@@ -6,3 +6,4 @@ test-results/
 package-lock.json
 CHANGELOG.md
 .release-please-manifest.json
+tests/fixtures/

@@ -1,11 +1,14 @@
 mod categories;
 mod constraint;
+mod fixtures;
 mod gen;
 mod probe;
 mod puzzle;
 mod search;
 mod seed;
 mod stats;
+#[cfg(test)]
+mod tests;
 mod words;
 
 use puzzle::{build, Date};
@@ -14,10 +17,11 @@ use std::process::ExitCode;
 
 const USAGE: &str = "usage: checksum-gen day <YYYY-MM-DD> [--text]
        checksum-gen range <YYYY-MM-DD> <days>
+       checksum-gen fixtures [--check]
        checksum-gen stats <YYYY-MM-DD> <days>
        checksum-gen feasible > data/checksum_words.txt
 every command takes --seed <string>, defaulting to $PUZZLE_SEED, else \"dev\"
-(range refuses to run without one)";
+(range refuses to run without one; fixtures ignores the environment)";
 
 #[derive(Serialize)]
 struct Entry {
@@ -61,6 +65,7 @@ fn run(args: &mut Vec<String>) -> Result<(), String> {
         "range" => flag
             .or_else(env_seed)
             .ok_or("range needs --seed or the PUZZLE_SEED environment variable")?,
+        "fixtures" => flag.unwrap_or_else(|| DEV_SEED.into()),
         _ => flag.or_else(env_seed).unwrap_or_else(|| DEV_SEED.into()),
     };
     let cats = categories::load();
@@ -86,6 +91,28 @@ fn run(args: &mut Vec<String>) -> Result<(), String> {
                 });
             }
             println!("{}", serde_json::to_string(&entries).unwrap());
+        }
+        "fixtures" => {
+            let started = std::time::Instant::now();
+            let (file, skipped) = fixtures::generate_all(&words, &cats, &seed)?;
+            for s in &skipped {
+                eprintln!("no failing phrase for {s}");
+            }
+            let text = fixtures::render(&file);
+            let path = fixtures::path();
+            if args.iter().any(|a| a == "--check") {
+                if std::fs::read_to_string(&path).ok().as_deref() != Some(text.as_str()) {
+                    return Err(format!("{} is out of date, run `fixtures`", path.display()));
+                }
+            } else {
+                std::fs::create_dir_all(path.parent().unwrap()).map_err(|e| e.to_string())?;
+                std::fs::write(&path, text).map_err(|e| e.to_string())?;
+                eprintln!(
+                    "wrote {} in {:.1}s",
+                    path.display(),
+                    started.elapsed().as_secs_f64()
+                );
+            }
         }
         "feasible" => print!("{}", probe::run(&words, &cats)),
         "stats" => print!(
