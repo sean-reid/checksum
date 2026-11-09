@@ -1,0 +1,156 @@
+{
+  "puzzles": [
+    {
+      "number": 1,
+      "date": "2026-11-08",
+      "m": 4,
+      "n": 2,
+      "constraints": [
+        {
+          "kind": "acrostic",
+          "pos": "first",
+          "category": "planet",
+          "article": "a",
+          "word": "mars"
+        },
+        {
+          "kind": "acrostic",
+          "pos": "last",
+          "category": "animal",
+          "article": "an",
+          "word": "bear"
+        },
+        {
+          "kind": "lengthsDistinct"
+        },
+        {
+          "kind": "lengthsAscending"
+        },
+        {
+          "kind": "totalLetters",
+          "value": 18
+        },
+        {
+          "kind": "scrabbleTotal",
+          "value": 28
+        },
+        {
+          "kind": "noneContains",
+          "letter": "z"
+        },
+        {
+          "kind": "doubleLetters",
+          "value": 1
+        },
+        {
+          "kind": "longestSlot",
+          "slot": 3
+        }
+      ],
+      "solution": ["mob", "acne", "rumba", "sinner"],
+      "checksum": "ocui",
+      "descriptions": [
+        "The first letters spell a planet.",
+        "The last letters spell an animal.",
+        "Every word has a different length.",
+        "Each word is longer than the one before.",
+        "The phrase has 18 letters in total.",
+        "The Scrabble score of the phrase is 28.",
+        "No word contains a Z.",
+        "Exactly one word contains a double letter.",
+        "The fourth word is the longest.",
+        "The checksum is the second letter of each word."
+      ],
+      "fails": [
+        {
+          "words": ["mob", "acne", "rumba", "arrear"],
+          "constraint": 0
+        },
+        {
+          "words": ["mob", "acne", "rumba", "sallee"],
+          "constraint": 1
+        },
+        {
+          "words": ["mob", "acne", "rumba", "sagger"],
+          "constraint": 5
+        },
+        {
+          "words": ["mob", "acne", "rumba", "saeter"],
+          "constraint": 7
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "date": "2026-11-09",
+      "m": 5,
+      "n": 3,
+      "constraints": [
+        {
+          "kind": "acrostic",
+          "pos": "first",
+          "category": "planet",
+          "article": "a",
+          "word": "venus"
+        },
+        {
+          "kind": "lengthsDistinct"
+        },
+        {
+          "kind": "lengthsDescending"
+        },
+        {
+          "kind": "totalLetters",
+          "value": 25
+        },
+        {
+          "kind": "scrabbleTotal",
+          "value": 33
+        },
+        {
+          "kind": "noneContains",
+          "letter": "z"
+        },
+        {
+          "kind": "doubleLetters",
+          "value": 0
+        },
+        {
+          "kind": "longestSlot",
+          "slot": 0
+        }
+      ],
+      "solution": ["veteran", "enough", "nurse", "undo", "sea"],
+      "checksum": "torda",
+      "descriptions": [
+        "The first letters spell a planet.",
+        "Every word has a different length.",
+        "Each word is shorter than the one before.",
+        "The phrase has 25 letters in total.",
+        "The Scrabble score of the phrase is 33.",
+        "No word contains a Z.",
+        "No word contains a double letter.",
+        "The first word is the longest.",
+        "The checksum is the third letter of each word."
+      ],
+      "fails": [
+        {
+          "words": ["veteran", "enough", "nurse", "undo", "aer"],
+          "constraint": 0
+        },
+        {
+          "words": ["veteran", "embar", "nausea", "undo", "sea"],
+          "constraint": 2
+        },
+        {
+          "words": ["veteran", "enough", "nurse", "undo", "sab"],
+          "constraint": 4
+        },
+        {
+          "words": ["veteran", "enough", "nurse", "undo", "saa"],
+          "constraint": 6
+        }
+      ]
+    }
+  ]
+}
