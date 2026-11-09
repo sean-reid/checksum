@@ -51,9 +51,9 @@ export default defineConfig({
       timeout: 180_000,
     },
     {
-      command: `npm run build && node scripts/seed-local.ts ${apiState} && npx wrangler dev --port ${apiPort} --ip 127.0.0.1 --persist-to ${apiState} --var TOKEN_SECRET:dev`,
+      command: `node scripts/seed-local.ts ${apiState} && npx wrangler dev --port ${apiPort} --ip 127.0.0.1 --persist-to ${apiState} --var TOKEN_SECRET:dev`,
       url: `http://127.0.0.1:${apiPort}/api/health`,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 180_000,
     },
   ],
