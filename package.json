@@ -21,6 +21,7 @@
     "@cloudflare/workers-types": "^5.20260928.1",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.63.0",
+    "@resvg/resvg-wasm": "^2.6.2",
     "@types/node": "^26.6.3",
     "eslint": "^10.11.0",
     "prettier": "^3.9.9",

@@ -11,6 +11,7 @@ import {
 import { puzzleKey, publicView, type StoredPuzzle } from "../shared/constraints.ts";
 import { dateWithinWindow, latestAllowedNumber, puzzleNumber } from "../shared/day.ts";
 import { notFoundPage, pageHeaders, resultPage } from "./page.ts";
+import { renderOg } from "./og.ts";
 import { DayResults } from "./results.ts";
 import { issueResult, issueStart, newNonce, verifyResult, verifyStart } from "./token.ts";
 
@@ -197,6 +198,20 @@ async function handleResultPage(token: string, url: URL, env: Env): Promise<Resp
   });
 }
 
+async function handleOgImage(token: string, env: Env): Promise<Response> {
+  const unconfigured = notConfigured(env);
+  if (unconfigured) return unconfigured;
+  const result = await verifyResult(env.TOKEN_SECRET, token);
+  if (!result) return error(404, "not found");
+  const png = await renderOg({ number: result.number, elapsedMs: result.elapsedMs });
+  return new Response(png, {
+    headers: {
+      "content-type": "image/png",
+      "cache-control": "public, max-age=31536000, immutable",
+    },
+  });
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -213,6 +228,8 @@ export default {
     if (result && method === "GET") return handleResult(result[1]!, env);
     const page = /^\/r\/([A-Za-z0-9_.-]+)$/.exec(pathname);
     if (page && method === "GET") return handleResultPage(page[1]!, url, env);
+    const og = /^\/og\/([A-Za-z0-9_.-]+)\.png$/.exec(pathname);
+    if (og && method === "GET") return handleOgImage(og[1]!, env);
     if (pathname.startsWith("/api/")) return error(404, "not found");
     return env.ASSETS.fetch(request);
   },
