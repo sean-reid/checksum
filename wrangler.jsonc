@@ -13,11 +13,10 @@
   "workers_dev": true,
   "preview_urls": true,
   "routes": [{ "pattern": "checksum.dwainosaur.com", "custom_domain": true }],
-  // Bindings the site actually uses. Ids come from `wrangler kv namespace create` and friends.
-  // "kv_namespaces": [{ "binding": "STORE", "id": "" }],
-  // "d1_databases": [{ "binding": "DB", "database_name": "checksum", "database_id": "", "migrations_dir": "migrations" }],
-  // "r2_buckets": [{ "binding": "FILES", "bucket_name": "checksum" }],
-  // "durable_objects": { "bindings": [{ "name": "COUNTERS", "class_name": "Counters" }] },
-  // "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Counters"] }],
-  // "ratelimits": [{ "name": "API_RATE", "namespace_id": "1", "simple": { "limit": 60, "period": 60 } }],
+  "kv_namespaces": [{ "binding": "PUZZLES", "id": "3f3a19381382454f8c1df5c71f9167b4" }],
+  "durable_objects": { "bindings": [{ "name": "RESULTS", "class_name": "DayResults" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DayResults"] }],
+  "ratelimits": [
+    { "name": "API_RATE", "namespace_id": "1", "simple": { "limit": 60, "period": 60 } },
+  ],
 }
