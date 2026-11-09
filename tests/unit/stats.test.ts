@@ -26,10 +26,19 @@ describe("recordSolve", () => {
   });
   it("resets the streak on a reveal", () => {
     let s = recordSolve(emptyStats(), 10, 60_000);
-    s = recordLoss(s);
+    s = recordLoss(s, true);
     expect(s.streak).toBe(0);
     s = recordSolve(s, 11, 60_000);
     expect(s.streak).toBe(1);
+  });
+  it("changes nothing when the same day is solved twice", () => {
+    const s = recordSolve(emptyStats(), 10, 60_000);
+    expect(recordSolve(s, 10, 30_000)).toEqual(s);
+  });
+  it("counts a reveal as played when no slot check counted the day", () => {
+    const s = recordLoss(emptyStats(), false);
+    expect(s).toMatchObject({ played: 1, solved: 0, streak: 0 });
+    expect(recordLoss(s, true).played).toBe(1);
   });
   it("counts played separately", () => {
     expect(recordPlayed(emptyStats()).played).toBe(1);

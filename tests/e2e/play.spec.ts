@@ -35,7 +35,8 @@ test("renders the rules, the slots, and the checksum row", async ({ page }) => {
   await expect(page.locator(".slot")).toHaveCount(puzzle.m);
   await expect(page.locator(".checksum .letters")).toHaveText("·".repeat(puzzle.m));
   await expect(page.locator(".lede")).toContainText("Fill the four words");
-  await expect(page.locator("#meta")).toContainText(`No. ${number} · 0:0`);
+  await expect(page.locator("#meta")).toHaveText(new RegExp(`^No\\. ${number} · \\d+:\\d\\d$`));
+  await expect(page.locator(".slot").first().locator(".len")).toHaveText("");
   await shot(page, "empty");
 
   await page.getByLabel("Word 1").fill("zzzzz");
@@ -43,6 +44,13 @@ test("renders the rules, the slots, and the checksum row", async ({ page }) => {
   await expect(page.locator(".slot").first().locator(".len")).toHaveText("not in list");
   await page.getByLabel("Word 1").fill("zz");
   await expect(page.locator(".slot").first().locator(".len")).toHaveText("2");
+
+  await page.getByLabel("Word 1").fill(solution[0]!);
+  await expect(page.locator(".slot").first()).toHaveClass(/locked/);
+  await expect(page.locator(".slot.locked")).toHaveCount(1);
+  await expect(page.locator(".result")).toBeHidden();
+  await page.getByLabel("Word 1").fill(solution[0]!.slice(0, -1));
+  await expect(page.locator(".slot.locked")).toHaveCount(0);
 });
 
 test("solves the puzzle, locks the slots, shares, and survives a reload", async ({

@@ -5,6 +5,7 @@ import {
   isLocked,
   lede,
   newGame,
+  parseGame,
   parseStartMs,
   sanitizeWord,
   shareText,
@@ -60,6 +61,9 @@ describe("slotView", () => {
   });
   it("says nothing before the list has loaded", () => {
     expect(slotView("zzzz", 3, null, false, true)).toMatchObject({ count: "4", countSoft: true });
+  });
+  it("shows no count for an empty slot", () => {
+    expect(slotView("", 3, list, false, true).count).toBe("");
   });
   it("marks a locked slot", () => {
     expect(slotView("tobacco", 3, list, true, false).locked).toBe(true);
@@ -136,5 +140,32 @@ describe("misc", () => {
     game.words = ["bet", ""];
     expect(isLocked(game, 0)).toBe(false);
     expect(isLocked(game, 1)).toBe(false);
+  });
+});
+
+describe("parseGame", () => {
+  const stored = () => JSON.stringify({ ...newGame(puzzle), words: ["bets", "toad"] });
+  const withField = (field: string, value: unknown) =>
+    JSON.stringify({ ...JSON.parse(stored()), [field]: value });
+
+  it("restores a well formed game", () => {
+    expect(parseGame(stored(), 1)?.words).toEqual(["bets", "toad"]);
+  });
+  it("refuses a previous day's game", () => {
+    expect(parseGame(stored(), 2)).toBeNull();
+  });
+  it("refuses corrupt games", () => {
+    expect(parseGame(null, 1)).toBeNull();
+    expect(parseGame("{nope", 1)).toBeNull();
+    expect(parseGame("[]", 1)).toBeNull();
+    expect(parseGame(withField("words", ["bets", "To-ad"]), 1)).toBeNull();
+    expect(parseGame(withField("words", ["bets"]), 1)).toBeNull();
+    expect(parseGame(withField("words", ["bets", "a".repeat(16)]), 1)).toBeNull();
+    expect(parseGame(withField("solved", "yes"), 1)).toBeNull();
+    expect(parseGame(withField("revealed", 1), 1)).toBeNull();
+    expect(parseGame(withField("elapsedMs", "12"), 1)).toBeNull();
+    expect(parseGame(withField("answers", { "0:bets": "true" }), 1)).toBeNull();
+    expect(parseGame(withField("solved", true), 1)).toBeNull();
+    expect(parseGame(withField("puzzle", { ...puzzle, constraints: null }), 1)).toBeNull();
   });
 });
