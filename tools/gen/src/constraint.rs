@@ -1,3 +1,4 @@
+use crate::categories::Category;
 use crate::words::Word;
 use serde::{Serialize, Serializer};
 
@@ -171,8 +172,19 @@ impl Constraint {
         }
     }
 
-    pub fn phrase_ok(&self, ws: &[&Word]) -> bool {
+    /// Whether the phrase satisfies the constraint as a player is held to it:
+    /// an acrostic accepts any member of its category.
+    pub fn phrase_ok(&self, ws: &[&Word], cats: &[Category]) -> bool {
         match self {
+            Constraint::Acrostic { pos, category, .. } => {
+                let spelled: Option<Vec<u8>> = ws.iter().map(|w| letter_at(&w.b, *pos)).collect();
+                spelled.is_some_and(|sp| {
+                    cats.iter().any(|c| {
+                        c.name == *category
+                            && c.members.iter().any(|m| m.as_bytes() == sp.as_slice())
+                    })
+                })
+            }
             c if c.is_local() => ws.iter().enumerate().all(|(i, w)| c.word_ok(i, w)),
             Constraint::LengthsDistinct => {
                 let mut seen = 0u32;

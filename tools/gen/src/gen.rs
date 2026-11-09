@@ -1,6 +1,8 @@
+use crate::bits::{log2_milli, MILLI};
 use crate::categories::Category;
 use crate::constraint::{has_double, Constraint, Pos};
 use crate::search::{Search, NODE_BUDGET};
+use crate::weights::weight;
 use crate::words::Words;
 
 const MIN_CHECKSUM_LEN: usize = 4;
@@ -8,19 +10,21 @@ const MAX_CHECKSUM_LEN: usize = 7;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
 
-pub const MIN_BITS: f64 = 10.0;
-pub const MAX_BITS: f64 = 26.0;
+/// The difficulty band, in thousandths of a bit.
+pub const MIN_BITS: i64 = 10 * MILLI;
+pub const MAX_BITS: i64 = 26 * MILLI;
 pub const MAX_ATTEMPTS: u32 = 1500;
 const MAX_CONSTRAINTS: usize = 6;
 pub const FALLBACK_STEP: usize = 4096;
 pub const MAX_FALLBACKS: usize = 4;
 const LONG_PHRASE: usize = 6;
 const SHAPE_DRAWS: usize = 20;
-/// Most bits per slot a planted absent letter can remove.
-const PLANT_MAX_DROP: f64 = 1.5;
+/// Most thousandths of a bit per slot a planted absent letter can remove.
+const PLANT_MAX_DROP: i64 = 1500;
 /// Phrases a bit count may leave per spellable checksum before sampling skips it.
-const UNIQUE_ODDS: f64 = 400.0;
+const UNIQUE_ODDS: u64 = 400;
 pub const PROBE_ATTEMPTS: u32 = 150;
+const UNREACHABLE: i64 = i64::MAX / 8;
 const ACROSTIC_TRIES: usize = 3000;
 
 pub struct Puzzle {
@@ -34,7 +38,7 @@ pub struct Puzzle {
 pub struct Report {
     pub puzzle: Puzzle,
     pub attempts: u32,
-    pub bits: f64,
+    pub bits: i64,
     pub fallbacks: u32,
     pub cap_hits: u32,
 }
@@ -56,15 +60,11 @@ impl Shape {
     }
 }
 
-fn weight(z: f32) -> f32 {
-    10f32.powf((z - 3.0) * 0.6)
-}
-
 /// Highest bit count worth sampling for an m-letter checksum: above it, so many
 /// phrases spell some word that the derived constraints cannot single one out.
-fn bits_ceiling(words: &Words, m: usize) -> f64 {
-    let spellable = words.by_len[m].len() as f64 / 26f64.powi(m as i32);
-    (UNIQUE_ODDS / spellable).log2().min(MAX_BITS)
+fn bits_ceiling(words: &Words, m: usize) -> i64 {
+    let spellable_inverse = UNIQUE_ODDS * 26u64.pow(m as u32);
+    (log2_milli(spellable_inverse) - log2_milli(words.by_len[m].len() as u64)).min(MAX_BITS)
 }
 
 /// Pool words of 4 to 7 letters, in list order.
@@ -110,7 +110,7 @@ pub fn generate_word(
     ck: usize,
     budget: u32,
     cap_hits: &mut u32,
-) -> Option<(Puzzle, f64, u32)> {
+) -> Option<(Puzzle, i64, u32)> {
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
     (1..=budget).find_map(|attempt| {
         attempt_once(words, cats, &mut rng, ck, cap_hits)
@@ -143,9 +143,9 @@ pub fn generate(words: &Words, cats: &[Category], seed: u64, index: usize) -> Op
     None
 }
 
-/// Exact bit count for the acrostic shapes the count tables cover; infinite
-/// when a slot has no candidate.
-fn quick_bits(words: &Words, cons: &[Constraint], m: usize) -> Option<f64> {
+/// Exact bit count (thousandths) for the acrostic shapes the count tables
+/// cover; `UNREACHABLE` when a slot has no candidate.
+fn quick_bits(words: &Words, cons: &[Constraint], m: usize) -> Option<i64> {
     let get = |p: Pos| {
         cons.iter().find_map(|c| match c {
             Constraint::Acrostic { pos, word, .. } if *pos == p => Some(word.as_bytes()),
@@ -173,9 +173,9 @@ fn quick_bits(words: &Words, cons: &[Constraint], m: usize) -> Option<f64> {
         _ => return None,
     };
     if counts.contains(&0) {
-        return Some(f64::INFINITY);
+        return Some(UNREACHABLE);
     }
-    Some(counts.iter().map(|&c| f64::from(c).log2()).sum())
+    Some(counts.iter().map(|&c| log2_milli(u64::from(c))).sum())
 }
 
 fn draw_shape(rng: &mut ChaCha8Rng) -> Option<Shape> {
@@ -287,18 +287,18 @@ fn acrostics(
     rng: &mut ChaCha8Rng,
     m: usize,
 ) -> Option<Vec<Constraint>> {
-    let two = rng.gen_bool(0.75);
+    let two = rng.gen_ratio(3, 4);
     let mut positions = vec![Pos::First];
     if two {
-        positions.push(if rng.gen_bool(0.8) {
+        positions.push(if rng.gen_ratio(4, 5) {
             Pos::Last
         } else {
             Pos::Nth(2)
         });
-    } else if rng.gen_bool(0.3) {
+    } else if rng.gen_ratio(3, 10) {
         positions[0] = Pos::Last;
     }
-    if two && m >= LONG_PHRASE && rng.gen_bool(0.5) {
+    if two && m >= LONG_PHRASE && rng.gen_ratio(1, 2) {
         let spare: Vec<Pos> = [Pos::Nth(2), Pos::Nth(3)]
             .into_iter()
             .filter(|p| !positions.contains(p))
@@ -386,7 +386,7 @@ fn attempt_once(
     rng: &mut ChaCha8Rng,
     ck: usize,
     cap_hits: &mut u32,
-) -> Option<(Puzzle, f64)> {
+) -> Option<(Puzzle, i64)> {
     let cw = words.list[ck].b.clone();
     let m = cw.len();
     let ceiling = bits_ceiling(words, m);
@@ -421,14 +421,10 @@ fn attempt_once(
                 return None;
             }
         }
-        let plant = m >= LONG_PHRASE && rng.gen_bool(0.5);
+        let plant = m >= LONG_PHRASE && rng.gen_ratio(1, 2);
         if let Some(bits) = quick_bits(words, &cons, m) {
-            let planted = if plant {
-                PLANT_MAX_DROP * m as f64
-            } else {
-                0.0
-            };
-            if bits.is_infinite() || bits < MIN_BITS || bits - planted > ceiling {
+            let planted = if plant { PLANT_MAX_DROP * m as i64 } else { 0 };
+            if !(MIN_BITS..UNREACHABLE).contains(&bits) || bits - planted > ceiling {
                 return None;
             }
         }
@@ -438,12 +434,13 @@ fn attempt_once(
         }
         let cands = Search {
             words,
+            cats,
             m,
             n,
             cons: &cons,
         }
         .slot_candidates_within(ceiling)?;
-        let bits: f64 = cands.iter().map(|c| (c.len() as f64).log2()).sum();
+        let bits: i64 = cands.iter().map(|c| log2_milli(c.len() as u64)).sum();
         if bits < MIN_BITS {
             return None;
         }
@@ -494,6 +491,7 @@ fn attempt_once(
     loop {
         let out = Search {
             words,
+            cats,
             m,
             n,
             cons: &cons,
@@ -514,6 +512,7 @@ fn attempt_once(
                 trial.remove(i);
                 let t = Search {
                     words,
+                    cats,
                     m,
                     n,
                     cons: &trial,
@@ -527,6 +526,7 @@ fn attempt_once(
             }
             let bits = Search {
                 words,
+                cats,
                 m,
                 n,
                 cons: &cons,

@@ -1,3 +1,4 @@
+mod bits;
 mod categories;
 mod constraint;
 mod fixtures;
@@ -9,6 +10,7 @@ mod seed;
 mod stats;
 #[cfg(test)]
 mod tests;
+mod weights;
 mod words;
 
 use puzzle::{build, Date};
@@ -58,16 +60,22 @@ fn env_seed() -> Option<String> {
     std::env::var("PUZZLE_SEED").ok().filter(|s| !s.is_empty())
 }
 
+/// The seed a command runs with: the flag, then the environment. `range` has
+/// no default, `fixtures` ignores the environment, the rest fall back to `dev`.
+fn resolve_seed(cmd: &str, flag: Option<String>, env: Option<String>) -> Result<String, String> {
+    match cmd {
+        "range" => flag
+            .or(env)
+            .ok_or_else(|| "range needs --seed or the PUZZLE_SEED environment variable".into()),
+        "fixtures" => Ok(flag.unwrap_or_else(|| DEV_SEED.into())),
+        _ => Ok(flag.or(env).unwrap_or_else(|| DEV_SEED.into())),
+    }
+}
+
 fn run(args: &mut Vec<String>) -> Result<(), String> {
     let flag = take_seed(args)?;
     let cmd = args.first().map(String::as_str).unwrap_or("");
-    let seed = match cmd {
-        "range" => flag
-            .or_else(env_seed)
-            .ok_or("range needs --seed or the PUZZLE_SEED environment variable")?,
-        "fixtures" => flag.unwrap_or_else(|| DEV_SEED.into()),
-        _ => flag.or_else(env_seed).unwrap_or_else(|| DEV_SEED.into()),
-    };
+    let seed = resolve_seed(cmd, flag, env_seed())?;
     let cats = categories::load();
     let words = gen::load_words(&seed);
     match cmd {

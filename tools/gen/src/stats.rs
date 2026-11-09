@@ -30,7 +30,7 @@ pub fn run(words: &Words, cats: &[Category], seed: &str, start: Date, days: i64)
             Ok(b) => {
                 times.push(t.elapsed().as_secs_f64() * 1000.0);
                 attempts.push(f64::from(b.report.attempts));
-                *bits.entry(b.report.bits.floor() as u32).or_default() += 1;
+                *bits.entry((b.report.bits / 1000) as u32).or_default() += 1;
                 cap_hits += u64::from(b.report.cap_hits);
                 total_attempts += u64::from(b.report.attempts);
                 if b.report.fallbacks > 0 {
@@ -61,7 +61,12 @@ pub fn run(words: &Words, cats: &[Category], seed: &str, start: Date, days: i64)
         times.len(),
         failures.len()
     );
-    let _ = writeln!(out, "\nbits (band {MIN_BITS} to {MAX_BITS})");
+    let _ = writeln!(
+        out,
+        "\nbits (band {} to {})",
+        MIN_BITS / 1000,
+        MAX_BITS / 1000
+    );
     for (b, c) in &bits {
         let _ = writeln!(out, "  {b:>2}-{:<2} {c}", b + 1);
     }

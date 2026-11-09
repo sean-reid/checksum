@@ -1,7 +1,8 @@
 use std::collections::HashSet;
 
-pub const POOL_ZIPF: f32 = 3.5;
-pub const SHORT_POOL_ZIPF: f32 = 4.0;
+/// Zipf frequencies are kept in hundredths.
+pub const POOL_ZIPF: i32 = 350;
+pub const SHORT_POOL_ZIPF: i32 = 400;
 
 const SCORES: [u32; 26] = [
     1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 5, 1, 3, 1, 1, 3, 10, 1, 1, 1, 1, 4, 4, 8, 4, 10,
@@ -11,10 +12,16 @@ pub fn score(b: &[u8]) -> u32 {
     b.iter().map(|&c| SCORES[(c - b'a') as usize]).sum()
 }
 
+fn hundredths(text: &str) -> i32 {
+    let (whole, frac) = text.split_once('.').unwrap_or((text, ""));
+    let frac = format!("{frac:0<2}");
+    whole.parse::<i32>().expect("zipf") * 100 + frac[..2].parse::<i32>().expect("zipf")
+}
+
 pub struct Word {
     pub s: String,
     pub b: Vec<u8>,
-    pub zipf: f32,
+    pub zipf: i32,
     pub score: u32,
     pub core: bool,
     pub denied: bool,
@@ -100,7 +107,7 @@ impl Words {
                 s: w.to_string(),
                 score: score(&b),
                 b,
-                zipf: z.parse().expect("zipf"),
+                zipf: hundredths(z),
                 core: core == "1",
                 denied: deny.contains(w),
             });
@@ -108,7 +115,8 @@ impl Words {
         for w in &list {
             let (f, l) = (w.b[0] - b'a', w.b[w.b.len() - 1] - b'a');
             for k in 2..=3usize {
-                let x = (w.b[k - 1] - b'a') as usize;
+                let Some(&at) = w.b.get(k - 1) else { continue };
+                let x = (at - b'a') as usize;
                 ends_nth[(((k - 2) * 26 + f as usize) * 26 + l as usize) * 26 + x] += 1;
                 first_nth[((k - 2) * 26 + f as usize) * 26 + x] += 1;
             }
@@ -116,7 +124,9 @@ impl Words {
         for w in list.iter().filter(|w| w.in_pool()) {
             let (f, l) = (w.b[0] - b'a', w.b[w.b.len() - 1] - b'a');
             for n in 1..=3 {
-                triples[Words::triple(n, f, l, w.b[n - 1] - b'a')] += 1;
+                if let Some(&at) = w.b.get(n - 1) {
+                    triples[Words::triple(n, f, l, at - b'a')] += 1;
+                }
             }
         }
         Words {

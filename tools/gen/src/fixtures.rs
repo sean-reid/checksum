@@ -29,7 +29,12 @@ pub struct File {
 }
 
 /// A phrase that satisfies every constraint but `idx`, with a list-word checksum.
-fn failing_phrase(words: &Words, built: &Built, idx: usize) -> Option<Vec<String>> {
+fn failing_phrase(
+    words: &Words,
+    cats: &[Category],
+    built: &Built,
+    idx: usize,
+) -> Option<Vec<String>> {
     let p = &built.report.puzzle;
     let rest: Vec<Constraint> = p
         .cons
@@ -40,6 +45,7 @@ fn failing_phrase(words: &Words, built: &Built, idx: usize) -> Option<Vec<String
         .collect();
     let out = Search {
         words,
+        cats,
         m: p.m,
         n: p.n,
         cons: &rest,
@@ -47,18 +53,18 @@ fn failing_phrase(words: &Words, built: &Built, idx: usize) -> Option<Vec<String
     .run(FAIL_CAP, NODE_BUDGET);
     out.solutions.into_iter().find_map(|s| {
         let ws: Vec<&Word> = s.iter().map(|&k| &words.list[k]).collect();
-        (!p.cons[idx].phrase_ok(&ws)).then(|| ws.iter().map(|w| w.s.clone()).collect())
+        (!p.cons[idx].phrase_ok(&ws, cats)).then(|| ws.iter().map(|w| w.s.clone()).collect())
     })
 }
 
-pub fn fails(words: &Words, built: &Built) -> (Vec<Fail>, Vec<String>) {
+pub fn fails(words: &Words, cats: &[Category], built: &Built) -> (Vec<Fail>, Vec<String>) {
     let mut fails = Vec::new();
     let mut skipped = Vec::new();
     for (idx, c) in built.report.puzzle.cons.iter().enumerate() {
         if matches!(c, Constraint::Acrostic { .. }) {
             continue;
         }
-        match failing_phrase(words, built, idx) {
+        match failing_phrase(words, cats, built, idx) {
             Some(w) => fails.push(Fail {
                 words: w,
                 constraint: idx,
@@ -79,7 +85,7 @@ pub fn generate_all(
     let mut skipped = Vec::new();
     for i in 0..DAYS {
         let built = build(words, cats, start.add_days(i), seed)?;
-        let (fails, skip) = fails(words, &built);
+        let (fails, skip) = fails(words, cats, &built);
         skipped.extend(skip);
         puzzles.push(Fixture {
             descriptions: built.puzzle.descriptions(),

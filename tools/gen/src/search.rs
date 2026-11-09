@@ -1,3 +1,5 @@
+use crate::bits::log2_milli;
+use crate::categories::Category;
 use crate::constraint::{has_double, Constraint, Pos};
 use crate::words::{Word, Words};
 
@@ -6,6 +8,7 @@ pub const NODE_BUDGET: u64 = 20_000_000;
 
 pub struct Search<'a> {
     pub words: &'a Words,
+    pub cats: &'a [Category],
     pub m: usize,
     pub n: usize,
     pub cons: &'a [Constraint],
@@ -14,10 +17,12 @@ pub struct Search<'a> {
 pub struct Outcome {
     pub solutions: Vec<Vec<usize>>,
     pub aborted: bool,
+    pub nodes: u64,
 }
 
 struct State<'a> {
     words: &'a Words,
+    cats: &'a [Category],
     cons: &'a [Constraint],
     buckets: Vec<Vec<usize>>,
     min_score: Vec<u32>,
@@ -57,23 +62,23 @@ impl Search<'_> {
         }
     }
 
-    /// Per-slot candidates after the local constraints and the checksum position.
+    /// Per-slot candidates for the stored acrostic words and the checksum position.
     pub fn slot_candidates(&self) -> Vec<Vec<usize>> {
         (0..self.m).map(|i| self.slot(i)).collect()
     }
 
     /// Like `slot_candidates`, but gives up as soon as a slot is empty or the
-    /// running bit count passes `max_bits`.
-    pub fn slot_candidates_within(&self, max_bits: f64) -> Option<Vec<Vec<usize>>> {
-        let mut bits = 0.0;
+    /// running bit count (thousandths) passes `max_milli`.
+    pub fn slot_candidates_within(&self, max_milli: i64) -> Option<Vec<Vec<usize>>> {
+        let mut bits = 0;
         let mut out = Vec::with_capacity(self.m);
         for i in 0..self.m {
             let c = self.slot(i);
             if c.is_empty() {
                 return None;
             }
-            bits += (c.len() as f64).log2();
-            if bits > max_bits {
+            bits += log2_milli(c.len() as u64);
+            if bits > max_milli {
                 return None;
             }
             out.push(c);
@@ -81,16 +86,103 @@ impl Search<'_> {
         Some(out)
     }
 
-    pub fn bits(&self) -> f64 {
+    /// Bits, in thousandths, of the per-slot candidate counts.
+    pub fn bits(&self) -> i64 {
         self.slot_candidates()
             .iter()
-            .map(|c| (c.len().max(1) as f64).log2())
+            .map(|c| log2_milli(c.len().max(1) as u64))
             .sum()
     }
 
-    /// Every phrase over the whole list that satisfies the constraints and
-    /// whose words are all distinct and whose checksum is a list word, stopping at `cap` phrases.
+    /// Every phrase over the whole list that satisfies the constraints as a
+    /// player is held to them (an acrostic accepts any member of its category)
+    /// and whose checksum is a list word, stopping at `cap` phrases.
     pub fn run(&self, cap: usize, budget: u64) -> Outcome {
+        let acrostics: Vec<usize> = (0..self.cons.len())
+            .filter(|&i| matches!(self.cons[i], Constraint::Acrostic { .. }))
+            .collect();
+        let members: Vec<Vec<&str>> = acrostics
+            .iter()
+            .map(|&i| {
+                let Constraint::Acrostic { category, .. } = &self.cons[i] else {
+                    unreachable!()
+                };
+                self.cats
+                    .iter()
+                    .filter(|c| c.name == *category)
+                    .flat_map(|c| c.members.iter())
+                    .filter(|w| w.len() == self.m)
+                    .map(String::as_str)
+                    .collect()
+            })
+            .collect();
+        let mut total = Outcome {
+            solutions: Vec::new(),
+            aborted: false,
+            nodes: 0,
+        };
+        let mut pick = vec![0usize; acrostics.len()];
+        if members.iter().any(|m| m.is_empty()) {
+            return total;
+        }
+        loop {
+            let mut cons = self.cons.to_vec();
+            for (a, &i) in acrostics.iter().enumerate() {
+                if let Constraint::Acrostic { word, .. } = &mut cons[i] {
+                    *word = members[a][pick[a]].to_string();
+                }
+            }
+            if self.ends_reachable(&cons) {
+                let part = Search {
+                    cons: &cons,
+                    ..*self
+                }
+                .run_stored(
+                    cap - total.solutions.len(),
+                    budget.saturating_sub(total.nodes),
+                );
+                total.nodes += part.nodes;
+                total.solutions.extend(part.solutions);
+                if part.aborted {
+                    total.aborted = true;
+                }
+            }
+            if total.aborted || total.solutions.len() >= cap {
+                return total;
+            }
+            let mut a = 0;
+            loop {
+                if a == pick.len() {
+                    return total;
+                }
+                pick[a] += 1;
+                if pick[a] < members[a].len() {
+                    break;
+                }
+                pick[a] = 0;
+                a += 1;
+            }
+        }
+    }
+
+    /// False when the first and last letter acrostics leave some slot with no
+    /// word at all.
+    fn ends_reachable(&self, cons: &[Constraint]) -> bool {
+        let get = |p: Pos| {
+            cons.iter().find_map(|c| match c {
+                Constraint::Acrostic { pos, word, .. } if *pos == p => Some(word.as_bytes()),
+                _ => None,
+            })
+        };
+        match (get(Pos::First), get(Pos::Last)) {
+            (Some(a), Some(z)) => (0..self.m)
+                .all(|i| self.words.by_ends[(a[i] - b'a') as usize][(z[i] - b'a') as usize] > 0),
+            _ => true,
+        }
+    }
+
+    /// Like `run`, but each acrostic holds only the word stored in it.
+    pub fn run_stored(&self, cap: usize, budget: u64) -> Outcome {
         let cands = self.slot_candidates();
         let mut by_letter: Vec<Vec<Vec<usize>>> = vec![vec![Vec::new(); 26]; self.m];
         for (i, c) in cands.iter().enumerate() {
@@ -101,6 +193,7 @@ impl Search<'_> {
         let m = self.m;
         let mut st = State {
             words: self.words,
+            cats: self.cats,
             cons: self.cons,
             buckets: vec![Vec::new(); m],
             min_score: vec![0; m + 1],
@@ -145,6 +238,7 @@ impl Search<'_> {
         Outcome {
             solutions: st.out,
             aborted: st.aborted,
+            nodes: st.nodes,
         }
     }
 }
@@ -161,7 +255,11 @@ impl State<'_> {
         let m = self.buckets.len();
         if i == m {
             let ws: Vec<&Word> = self.chosen.iter().map(|&k| &self.words.list[k]).collect();
-            if self.cons.iter().all(|c| c.is_local() || c.phrase_ok(&ws)) {
+            if self
+                .cons
+                .iter()
+                .all(|c| c.is_local() || c.phrase_ok(&ws, self.cats))
+            {
                 self.out.push(self.chosen.clone());
             }
             return;
