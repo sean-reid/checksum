@@ -14,4 +14,4 @@ npm run test:e2e       # Playwright against a local wrangler dev
 
 ## How it runs
 
-One Cloudflare Worker serves the page and a small API. Puzzles are generated ahead of time by a Rust tool in a nightly GitHub Actions job and written to a KV namespace; the solution never reaches the browser. The client checks the rules against your words as you type. The Worker confirms whether a word matches the solution in its slot, verifies the finished phrase, and stamps the solve time, which the share card carries. The puzzle rolls over at local midnight, numbered from `EPOCH` in `shared/day.ts`.
+One Cloudflare Worker serves the page and a small API. Puzzles are generated ahead of time by a Rust tool in a nightly GitHub Actions job and written to a KV namespace; the solution reaches the browser only when the player gives up. The client checks the rules against your words as you type. The Worker confirms whether a word matches the solution in its slot, verifies the finished phrase, and stamps the solve time, which the share card carries. The puzzle rolls over at local midnight, numbered from `EPOCH` in `shared/day.ts`.

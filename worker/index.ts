@@ -73,7 +73,13 @@ async function limited(env: Env, request: Request): Promise<boolean> {
   return !success;
 }
 
-async function handlePuzzle(url: URL, env: Env): Promise<Response> {
+const notConfigured = (env: Env): Response | null =>
+  env.TOKEN_SECRET ? null : error(503, "not configured");
+
+async function handlePuzzle(request: Request, url: URL, env: Env): Promise<Response> {
+  const unconfigured = notConfigured(env);
+  if (unconfigured) return unconfigured;
+  if (await limited(env, request)) return error(429, "slow down");
   const now = Date.now();
   const date = url.searchParams.get("date") ?? "";
   if (!dateWithinWindow(date, now)) return error(400, "bad date");
@@ -95,6 +101,8 @@ interface Session {
 }
 
 async function session(request: Request, env: Env): Promise<Session | Response> {
+  const unconfigured = notConfigured(env);
+  if (unconfigured) return unconfigured;
   if (await limited(env, request)) return error(429, "slow down");
   const body = await readJson(request);
   if (!body) return error(400, "bad request");
@@ -162,6 +170,8 @@ async function handleStats(numberText: string, env: Env): Promise<Response> {
 }
 
 async function handleResult(token: string, env: Env): Promise<Response> {
+  const unconfigured = notConfigured(env);
+  if (unconfigured) return unconfigured;
   const result = await verifyResult(env.TOKEN_SECRET, token);
   if (!result) return error(404, "not found");
   const body: ResultResponse = { number: result.number, elapsedMs: result.elapsedMs };
@@ -174,7 +184,7 @@ export default {
     const { pathname } = url;
     const method = request.method;
     if (pathname === "/api/health") return json({ ok: true });
-    if (pathname === "/api/puzzle" && method === "GET") return handlePuzzle(url, env);
+    if (pathname === "/api/puzzle" && method === "GET") return handlePuzzle(request, url, env);
     if (pathname === "/api/slot" && method === "POST") return handleSlot(request, env);
     if (pathname === "/api/solve" && method === "POST") return handleSolve(request, env);
     if (pathname === "/api/reveal" && method === "POST") return handleReveal(request, env);
