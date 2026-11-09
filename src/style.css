@@ -62,14 +62,25 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
   color: inherit;
+  min-height: 44px;
 }
 
 :focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .page {
@@ -146,7 +157,7 @@ input {
 }
 
 .stats {
-  margin: 0.5rem 0 0;
+  margin: 1.5rem 0 0.75rem;
   border-bottom: 1px solid var(--rule);
 }
 
@@ -317,6 +328,10 @@ input {
   margin: 1.5rem 0 0;
   padding-top: 0.75rem;
   border-top: 1px solid var(--ink);
+}
+
+.result:focus {
+  outline: none;
 }
 
 .result p {

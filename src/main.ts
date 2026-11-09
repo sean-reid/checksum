@@ -39,6 +39,13 @@ const BUSY = "The server is busy, try again in a moment";
 const CHECK_DELAY_MS = 400;
 const SETTLE_MS = 700;
 const BACKOFF_MS = 10_000;
+const RETRY_MS = 2000;
+
+let sticky = false;
+
+function clearNotice(): void {
+  if (!sticky) notice.replaceChildren();
+}
 
 function say(text: string, action?: { label: string; run: () => void }): void {
   notice.replaceChildren(text);
@@ -116,13 +123,25 @@ function play(game: StoredGame): void {
   let backoffUntil = 0;
   let solving = false;
   let lastSolveKey = "";
+  let scheduledKey = "";
+  let solveTimer = 0;
 
   const lockedNow = (): boolean[] => game.words.map((_, i) => finished || isLocked(game, i));
 
   const render = (): void => {
     const view = boardView(game, data, settled, lockedNow());
     board.update(view, finished);
-    if (!finished && view.solvable) void submit();
+    const listed = data.words !== null && game.words.every((w) => data.words?.has(w));
+    if (finished || !view.solvable || !listed) {
+      clearTimeout(solveTimer);
+      scheduledKey = "";
+      return;
+    }
+    const key = game.words.join(",");
+    if (key === scheduledKey) return;
+    clearTimeout(solveTimer);
+    scheduledKey = key;
+    solveTimer = window.setTimeout(() => void submit(), CHECK_DELAY_MS);
   };
 
   const paintClock = (ms: number): void => {
@@ -147,7 +166,7 @@ function play(game: StoredGame): void {
     updateStats(recordPlayed(stats));
   };
 
-  const runCheck = async (slot: number, word: string): Promise<void> => {
+  const runCheck = async (slot: number, word: string, retry = true): Promise<void> => {
     if (game.words[slot] !== word || finished) return;
     const wait = backoffUntil - Date.now();
     if (wait > 0) {
@@ -162,7 +181,13 @@ function play(game: StoredGame): void {
         checkTimers[slot] = window.setTimeout(() => void runCheck(slot, word), BACKOFF_MS);
         return;
       }
-      if (!reply.body) return;
+      if (!reply.body) {
+        if (retry) {
+          checkTimers[slot] = window.setTimeout(() => void runCheck(slot, word, false), RETRY_MS);
+        }
+        return;
+      }
+      clearNotice();
       game.answers[key] = reply.body.match;
     }
     lastChecked[slot] = word;
@@ -189,16 +214,20 @@ function play(game: StoredGame): void {
     );
   };
 
-  const showSolved = (): void => {
+  const showSolved = (focus: boolean): void => {
     stopClock(game.elapsedMs ?? 0);
-    board.showSolved(`Solved in ${formatElapsed(game.elapsedMs ?? 0)}.`, "share");
+    board.showSolved(`Solved in ${formatElapsed(game.elapsedMs ?? 0)}.`, "share", focus);
     board.endGame();
     void globalLine();
   };
 
   async function submit(): Promise<void> {
     const key = game.words.join(",");
-    if (solving || key === lastSolveKey) return;
+    if (solving) {
+      scheduledKey = "";
+      return;
+    }
+    if (key === lastSolveKey) return;
     solving = true;
     lastSolveKey = key;
     const reply = await call<SolveResponse>("/api/solve", {
@@ -208,6 +237,7 @@ function play(game: StoredGame): void {
     solving = false;
     if (finished) return;
     if (reply.body?.ok) {
+      clearNotice();
       count();
       finished = true;
       game.solved = true;
@@ -216,14 +246,29 @@ function play(game: StoredGame): void {
       persist();
       updateStats(recordSolve(stats, puzzle.number, reply.body.elapsedMs));
       render();
-      showSolved();
-    } else if (reply.body) {
+      showSolved(true);
+      return;
+    }
+    if (reply.body) {
       say("That isn't the phrase.");
     } else {
       lastSolveKey = "";
-      say(reply.status === 429 || reply.status === 503 ? BUSY : "Couldn't check the phrase.");
+      scheduledKey = "";
+      say(reply.status === 429 || reply.status === 503 ? BUSY : "Couldn't check the phrase.", {
+        label: "retry",
+        run: render,
+      });
+    }
+    if (game.words.join(",") !== key) {
+      scheduledKey = "";
+      render();
     }
   }
+
+  const flashShare = (label: string): void => {
+    board.setShareLabel(label);
+    setTimeout(() => board.setShareLabel("share"), 2000);
+  };
 
   const share = async (): Promise<void> => {
     if (game.result === null || game.elapsedMs === null) return;
@@ -231,41 +276,47 @@ function play(game: StoredGame): void {
     if (typeof navigator.share === "function") {
       try {
         await navigator.share({ text });
-      } catch {
         return;
+      } catch (e) {
+        if (e instanceof DOMException && e.name === "AbortError") return;
       }
-      return;
     }
     try {
       await navigator.clipboard.writeText(text);
+      flashShare("copied");
     } catch {
-      return;
+      flashShare("couldn't copy");
     }
-    board.setShareLabel("copied");
-    setTimeout(() => board.setShareLabel("share"), 2000);
   };
 
   const reveal = async (): Promise<void> => {
     const reply = await call<RevealResponse>("/api/reveal", { token: puzzle.token });
     if (!reply.body) {
-      say(reply.status === 429 || reply.status === 503 ? BUSY : "Couldn't reveal the solution.");
+      say(reply.status === 429 || reply.status === 503 ? BUSY : "Couldn't reveal the solution.", {
+        label: "retry",
+        run: () => void reveal(),
+      });
       return;
     }
+    clearNotice();
     finished = true;
     game.revealed = true;
     game.words = reply.body.solution;
     game.elapsedMs = Date.now() - startMs;
+    const counted = game.counted;
+    game.counted = true;
     persist();
-    updateStats(recordLoss(stats));
+    updateStats(recordLoss(stats, counted));
     board.setWords(game.words);
     render();
     stopClock(game.elapsedMs);
-    board.showRevealed();
+    board.showRevealed(true);
     board.endGame();
   };
 
   const board: Board = createBoard(puzzle, {
     input(slot, word) {
+      clearNotice();
       game.words[slot] = word;
       settled[slot] = false;
       clearTimeout(settleTimers[slot]);
@@ -290,10 +341,10 @@ function play(game: StoredGame): void {
   board.setWords(game.words);
   render();
 
-  if (game.solved) showSolved();
+  if (game.solved) showSolved(false);
   else if (game.revealed) {
     stopClock(game.elapsedMs ?? 0);
-    board.showRevealed();
+    board.showRevealed(false);
     board.endGame();
   } else startClock();
 
@@ -304,10 +355,10 @@ function play(game: StoredGame): void {
     game.words.forEach((_, i) => scheduleCheck(i));
   });
 
-  setTimeout(
-    () => say("A new puzzle is ready", { label: "reload", run: () => location.reload() }),
-    msUntilLocalMidnight(),
-  );
+  setTimeout(() => {
+    sticky = true;
+    say("A new puzzle is ready", { label: "reload", run: () => location.reload() });
+  }, msUntilLocalMidnight());
 }
 
 async function start(): Promise<void> {
@@ -326,6 +377,7 @@ async function start(): Promise<void> {
   }
   const reply = await call<PuzzleResponse>(`/api/puzzle?date=${localIsoDate()}`);
   if (reply.body) {
+    clearNotice();
     const game = newGame(reply.body);
     saveGame(game);
     play(game);

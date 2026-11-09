@@ -38,9 +38,9 @@ export interface Board {
   update(view: BoardView, locked: boolean): void;
   setWords(words: readonly string[]): void;
   focus(slot: number): void;
-  showSolved(text: string, shareLabel: string): void;
+  showSolved(text: string, shareLabel: string, focus: boolean): void;
   setGlobal(line: string): void;
-  showRevealed(): void;
+  showRevealed(focus: boolean): void;
   setShareLabel(label: string): void;
   endGame(): void;
 }
@@ -101,7 +101,7 @@ export function createBoard(puzzle: PublicPuzzle, handlers: BoardHandlers): Boar
   const next = (i: number) => slots[i + 1]?.input.focus();
   for (let i = 0; i < puzzle.m; i++) slots.push(buildSlot(i, handlers, next));
   const letters = h("span", { class: "letters" });
-  const result = h("div", { class: "result" });
+  const result = h("div", { class: "result", role: "status", tabindex: "-1" });
   result.hidden = true;
   const actions = h("p", { class: "actions" });
   const root = h(
@@ -171,19 +171,21 @@ export function createBoard(puzzle: PublicPuzzle, handlers: BoardHandlers): Boar
     focus(slot) {
       slots[slot]?.input.focus();
     },
-    showSolved(text, shareLabel) {
+    showSolved(text, shareLabel, focus) {
       share = h("button", { type: "button", class: "share" }, shareLabel);
       share.addEventListener("click", handlers.share);
       global = h("p", { class: "global" });
       result.replaceChildren(h("p", {}, text), share, global);
       result.hidden = false;
+      if (focus) result.focus();
     },
     setGlobal(line) {
       if (global) global.textContent = line;
     },
-    showRevealed() {
+    showRevealed(focus) {
       result.replaceChildren(h("p", {}, "Revealed. Back tomorrow."));
       result.hidden = false;
+      if (focus) result.focus();
     },
     setShareLabel(label) {
       if (share) share.textContent = label;

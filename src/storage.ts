@@ -1,4 +1,4 @@
-import type { StoredGame } from "./game.ts";
+import { parseGame, type StoredGame } from "./game.ts";
 import { parseStats, type Stats } from "./stats.ts";
 
 const gameKey = (number: number): string => `checksum:game:${number}`;
@@ -21,23 +21,8 @@ export function write(key: string, value: string): void {
   }
 }
 
-export function loadGame(number: number): StoredGame | null {
-  const raw = read(gameKey(number));
-  if (!raw) return null;
-  try {
-    const g = JSON.parse(raw) as StoredGame;
-    const ok =
-      typeof g.puzzle?.token === "string" &&
-      g.puzzle.number === number &&
-      Array.isArray(g.words) &&
-      g.words.length === g.puzzle.m &&
-      typeof g.answers === "object" &&
-      g.answers !== null;
-    return ok ? g : null;
-  } catch {
-    return null;
-  }
-}
+export const loadGame = (number: number): StoredGame | null =>
+  parseGame(read(gameKey(number)), number);
 
 export const saveGame = (g: StoredGame): void => write(gameKey(g.puzzle.number), JSON.stringify(g));
 

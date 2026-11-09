@@ -116,7 +116,7 @@ export function slotView(
     before: word.slice(0, at),
     nth: word.charAt(at),
     after: word.slice(at + 1),
-    count: unlisted ? "not in list" : String(word.length),
+    count: unlisted ? "not in list" : word === "" ? "" : String(word.length),
     countSoft: !listed && !locked,
     locked,
     empty: word === "",
@@ -170,4 +170,42 @@ export function boardView(
     checksum,
     solvable: rules.every((r) => r.ok),
   };
+}
+
+const WORD_SHAPE = /^[a-z]{0,15}$/;
+const isRecord = (v: unknown): v is Record<string, unknown> =>
+  typeof v === "object" && v !== null && !Array.isArray(v);
+
+export function parseGame(raw: string | null, number: number): StoredGame | null {
+  if (!raw) return null;
+  let g: unknown;
+  try {
+    g = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!isRecord(g) || !isRecord(g.puzzle) || !isRecord(g.answers)) return null;
+  const { puzzle, words, answers, counted, solved, revealed, elapsedMs, result } = g as Record<
+    string,
+    unknown
+  >;
+  const p = puzzle as Record<string, unknown>;
+  const ok =
+    p.number === number &&
+    typeof p.token === "string" &&
+    typeof p.date === "string" &&
+    Number.isInteger(p.m) &&
+    Number.isInteger(p.n) &&
+    Array.isArray(p.constraints) &&
+    Array.isArray(words) &&
+    words.length === p.m &&
+    words.every((w) => typeof w === "string" && WORD_SHAPE.test(w)) &&
+    Object.values(answers as Record<string, unknown>).every((a) => typeof a === "boolean") &&
+    typeof counted === "boolean" &&
+    typeof solved === "boolean" &&
+    typeof revealed === "boolean" &&
+    (elapsedMs === null || typeof elapsedMs === "number") &&
+    (result === null || typeof result === "string") &&
+    (!solved || (typeof elapsedMs === "number" && typeof result === "string"));
+  return ok ? (g as unknown as StoredGame) : null;
 }

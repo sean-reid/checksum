@@ -23,6 +23,7 @@ export const emptyStats = (): Stats => ({
 export const recordPlayed = (s: Stats): Stats => ({ ...s, played: s.played + 1 });
 
 export function recordSolve(s: Stats, number: number, elapsedMs: number): Stats {
+  if (s.lastSolved === number) return s;
   const streak = s.lastSolved === number - 1 ? s.streak + 1 : 1;
   return {
     ...s,
@@ -35,7 +36,11 @@ export function recordSolve(s: Stats, number: number, elapsedMs: number): Stats 
   };
 }
 
-export const recordLoss = (s: Stats): Stats => ({ ...s, streak: 0 });
+export const recordLoss = (s: Stats, counted: boolean): Stats => ({
+  ...s,
+  played: counted ? s.played : s.played + 1,
+  streak: 0,
+});
 
 export const currentStreak = (s: Stats, today: number): number =>
   s.lastSolved !== null && s.lastSolved >= today - 1 ? s.streak : 0;
