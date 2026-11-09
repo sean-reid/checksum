@@ -212,6 +212,11 @@ async function handleOgImage(token: string, env: Env): Promise<Response> {
   });
 }
 
+const headless = (res: Response, method: string): Response =>
+  method === "HEAD"
+    ? new Response(null, { status: res.status, statusText: res.statusText, headers: res.headers })
+    : res;
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -227,9 +232,13 @@ export default {
     const result = /^\/api\/result\/([A-Za-z0-9_.-]+)$/.exec(pathname);
     if (result && method === "GET") return handleResult(result[1]!, env);
     const page = /^\/r\/([A-Za-z0-9_.-]+)$/.exec(pathname);
-    if (page && method === "GET") return handleResultPage(page[1]!, url, env);
+    if (page && (method === "GET" || method === "HEAD")) {
+      return headless(await handleResultPage(page[1]!, url, env), method);
+    }
     const og = /^\/og\/([A-Za-z0-9_.-]+)\.png$/.exec(pathname);
-    if (og && method === "GET") return handleOgImage(og[1]!, env);
+    if (og && (method === "GET" || method === "HEAD")) {
+      return headless(await handleOgImage(og[1]!, env), method);
+    }
     if (pathname.startsWith("/api/")) return error(404, "not found");
     return env.ASSETS.fetch(request);
   },
