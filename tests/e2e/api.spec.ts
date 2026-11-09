@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { expect, test, type APIRequestContext } from "@playwright/test";
 import type {
   PuzzleResponse,
@@ -9,6 +9,7 @@ import type {
 } from "../../shared/api.ts";
 import type { StoredPuzzle } from "../../shared/constraints.ts";
 import { puzzleNumber } from "../../shared/day.ts";
+import { formatElapsed } from "../../shared/time.ts";
 import { issueStart, newNonce } from "../../worker/token.ts";
 
 const today = new Date().toISOString().slice(0, 10);
@@ -118,6 +119,67 @@ test("the right phrase solves and yields a verifiable result token", async ({ re
   expect((await request.get(`/api/result/${body.result.slice(0, -2)}AA`)).status()).toBe(404);
   expect((await request.get("/api/result/garbage")).status()).toBe(404);
   expect((await stats(request)).solves).toBe(before.solves + 1);
+});
+
+test("the shared page and og card render from a result token", async ({ request }) => {
+  const { token } = await start(request);
+  const solved = (await (await solve(request, token, solution)).json()) as Extract<
+    SolveResponse,
+    { ok: true }
+  >;
+  elapsedTimes.push(solved.elapsedMs);
+
+  const page = await request.get(`/r/${solved.result}`);
+  expect(page.status()).toBe(200);
+  expect(page.headers()["content-type"]).toContain("text/html");
+  expect(page.headers()["cache-control"]).toBe("public, max-age=3600");
+  expect(page.headers()["content-security-policy"]).toContain("default-src 'none'");
+  const html = await page.text();
+  expect(html).toContain(`No. ${number}`);
+  expect(html).toContain(formatElapsed(solved.elapsedMs));
+  const image = /property="og:image" content="(https?:\/\/[^"]+)"/.exec(html)?.[1];
+  expect(image).toMatch(
+    new RegExp(`^https?://[^/]+/og/${solved.result.replaceAll(".", "\\.")}\\.png$`),
+  );
+  expect(html).toContain('content="summary_large_image"');
+  expect(html).not.toContain("solution");
+  expect(html).not.toContain(checksum);
+
+  const head = await request.head(`/r/${solved.result}`);
+  expect(head.status()).toBe(200);
+  expect(head.headers()["content-type"]).toBe(page.headers()["content-type"]);
+  expect(await head.body()).toHaveLength(0);
+  const cardHead = await request.head(`/og/${solved.result}.png`);
+  expect(cardHead.status()).toBe(200);
+  expect(cardHead.headers()["content-type"]).toBe("image/png");
+  expect(await cardHead.body()).toHaveLength(0);
+  expect((await request.head("/r/garbage")).status()).toBe(404);
+
+  const card = await request.get(`/og/${solved.result}.png`);
+  expect(card.status()).toBe(200);
+  expect(card.headers()["content-type"]).toBe("image/png");
+  expect(card.headers()["cache-control"]).toBe("public, max-age=31536000, immutable");
+  const png = await card.body();
+  expect([...png.subarray(0, 4)]).toEqual([0x89, 0x50, 0x4e, 0x47]);
+  expect(png.readUInt32BE(16)).toBe(1200);
+  expect(png.readUInt32BE(20)).toBe(630);
+  mkdirSync("test-results", { recursive: true });
+  writeFileSync("test-results/og-sample.png", png);
+});
+
+test("the shared page and og card refuse a bad token", async ({ request }) => {
+  const { token } = await start(request);
+  const solved = (await (await solve(request, token, solution)).json()) as Extract<
+    SolveResponse,
+    { ok: true }
+  >;
+  elapsedTimes.push(solved.elapsedMs);
+  const tampered = `${solved.result.slice(0, -2)}AA`;
+  for (const path of ["/r/garbage", `/r/${tampered}`, "/og/garbage.png", `/og/${tampered}.png`]) {
+    expect((await request.get(path)).status()).toBe(404);
+  }
+  const page = await request.get("/r/garbage");
+  expect(page.headers()["content-type"]).toContain("text/html");
 });
 
 test("solving the same token twice counts once", async ({ request }) => {

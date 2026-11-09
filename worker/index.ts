@@ -10,6 +10,8 @@ import {
 } from "../shared/api.ts";
 import { puzzleKey, publicView, type StoredPuzzle } from "../shared/constraints.ts";
 import { dateWithinWindow, latestAllowedNumber, puzzleNumber } from "../shared/day.ts";
+import { notFoundPage, pageHeaders, resultPage } from "./page.ts";
+import { renderOg } from "./og.ts";
 import { DayResults } from "./results.ts";
 import { issueResult, issueStart, newNonce, verifyResult, verifyStart } from "./token.ts";
 
@@ -178,6 +180,43 @@ async function handleResult(token: string, env: Env): Promise<Response> {
   return json(body);
 }
 
+const notFoundHtml = (): Response =>
+  new Response(notFoundPage, {
+    status: 404,
+    headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" },
+  });
+
+async function handleResultPage(token: string, url: URL, env: Env): Promise<Response> {
+  const unconfigured = notConfigured(env);
+  if (unconfigured) return unconfigured;
+  const result = await verifyResult(env.TOKEN_SECRET, token);
+  if (!result) return notFoundHtml();
+  const body: ResultResponse = { number: result.number, elapsedMs: result.elapsedMs };
+  const image = `${url.origin}/og/${token}.png`;
+  return new Response(resultPage(body, image), {
+    headers: { ...(await pageHeaders()), "cache-control": "public, max-age=3600" },
+  });
+}
+
+async function handleOgImage(token: string, env: Env): Promise<Response> {
+  const unconfigured = notConfigured(env);
+  if (unconfigured) return unconfigured;
+  const result = await verifyResult(env.TOKEN_SECRET, token);
+  if (!result) return error(404, "not found");
+  const png = await renderOg({ number: result.number, elapsedMs: result.elapsedMs });
+  return new Response(png, {
+    headers: {
+      "content-type": "image/png",
+      "cache-control": "public, max-age=31536000, immutable",
+    },
+  });
+}
+
+const headless = (res: Response, method: string): Response =>
+  method === "HEAD"
+    ? new Response(null, { status: res.status, statusText: res.statusText, headers: res.headers })
+    : res;
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -192,6 +231,14 @@ export default {
     if (stats && method === "GET") return handleStats(stats[1]!, env);
     const result = /^\/api\/result\/([A-Za-z0-9_.-]+)$/.exec(pathname);
     if (result && method === "GET") return handleResult(result[1]!, env);
+    const page = /^\/r\/([A-Za-z0-9_.-]+)$/.exec(pathname);
+    if (page && (method === "GET" || method === "HEAD")) {
+      return headless(await handleResultPage(page[1]!, url, env), method);
+    }
+    const og = /^\/og\/([A-Za-z0-9_.-]+)\.png$/.exec(pathname);
+    if (og && (method === "GET" || method === "HEAD")) {
+      return headless(await handleOgImage(og[1]!, env), method);
+    }
     if (pathname.startsWith("/api/")) return error(404, "not found");
     return env.ASSETS.fetch(request);
   },
