@@ -1,6 +1,6 @@
 {
   "name": "checksum",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "description": "A daily word puzzle: find the phrase, read off the checksum.",
