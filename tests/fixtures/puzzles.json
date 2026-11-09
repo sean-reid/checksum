@@ -4,79 +4,77 @@
       "number": 1,
       "date": "2026-11-08",
       "m": 4,
-      "n": 2,
+      "n": 3,
       "constraints": [
         {
           "kind": "acrostic",
           "pos": "first",
-          "category": "planet",
-          "article": "a",
-          "word": "mars"
+          "category": "animal",
+          "article": "an",
+          "word": "toad"
         },
         {
           "kind": "acrostic",
           "pos": "last",
-          "category": "animal",
-          "article": "an",
-          "word": "bear"
-        },
-        {
-          "kind": "lengthsDistinct"
-        },
-        {
-          "kind": "lengthsAscending"
+          "category": "gem",
+          "article": "a",
+          "word": "opal"
         },
         {
           "kind": "totalLetters",
-          "value": 18
-        },
-        {
-          "kind": "scrabbleTotal",
-          "value": 28
-        },
-        {
-          "kind": "noneContains",
-          "letter": "z"
+          "value": 29
         },
         {
           "kind": "doubleLetters",
-          "value": 1
+          "value": 2
         },
         {
-          "kind": "longestSlot",
-          "slot": 3
+          "kind": "scrabbleTotal",
+          "value": 43
         }
       ],
-      "solution": ["mob", "acne", "rumba", "sinner"],
-      "checksum": "ocui",
+      "solution": [
+        "tobacco",
+        "overlap",
+        "antenna",
+        "disposal"
+      ],
+      "checksum": "bets",
       "descriptions": [
-        "The first letters spell a planet.",
-        "The last letters spell an animal.",
-        "Every word has a different length.",
-        "Each word is longer than the one before.",
-        "The phrase has 18 letters in total.",
-        "The Scrabble score of the phrase is 28.",
-        "No word contains a Z.",
-        "Exactly one word contains a double letter.",
-        "The fourth word is the longest.",
-        "The checksum is the second letter of each word."
+        "The first letters spell an animal.",
+        "The last letters spell a gem.",
+        "The phrase has 29 letters in total.",
+        "Exactly two words contain a double letter.",
+        "The Scrabble score of the phrase is 43.",
+        "The checksum is the third letter of each word."
       ],
       "fails": [
         {
-          "words": ["mob", "acne", "rumba", "arrear"],
-          "constraint": 0
+          "words": [
+            "buffalo",
+            "equip",
+            "agenda",
+            "roll"
+          ],
+          "constraint": 2
         },
         {
-          "words": ["mob", "acne", "rumba", "sallee"],
-          "constraint": 1
+          "words": [
+            "gestapo",
+            "overlap",
+            "ammonia",
+            "tribunal"
+          ],
+          "constraint": 3
         },
         {
-          "words": ["mob", "acne", "rumba", "sagger"],
-          "constraint": 5
-        },
-        {
-          "words": ["mob", "acne", "rumba", "saeter"],
-          "constraint": 7
+          "words": [
+            "folio",
+            "rooftop",
+            "orchestra",
+            "goodwill"
+          ],
+          "constraint": 4
         }
       ]
     },
@@ -89,66 +87,787 @@
         {
           "kind": "acrostic",
           "pos": "first",
-          "category": "planet",
+          "category": "unit of time",
           "article": "a",
-          "word": "venus"
+          "word": "month"
         },
         {
-          "kind": "lengthsDistinct"
-        },
-        {
-          "kind": "lengthsDescending"
-        },
-        {
-          "kind": "totalLetters",
-          "value": 25
+          "kind": "acrostic",
+          "pos": "last",
+          "category": "country",
+          "article": "a",
+          "word": "gabon"
         },
         {
           "kind": "scrabbleTotal",
-          "value": 33
+          "value": 49
+        },
+        {
+          "kind": "doubleLetters",
+          "value": 3
+        },
+        {
+          "kind": "totalLetters",
+          "value": 30
         },
         {
           "kind": "noneContains",
-          "letter": "z"
+          "letter": "s"
+        }
+      ],
+      "solution": [
+        "modelling",
+        "omega",
+        "numb",
+        "too",
+        "honeymoon"
+      ],
+      "checksum": "demon",
+      "descriptions": [
+        "The first letters spell a unit of time.",
+        "The last letters spell a country.",
+        "The Scrabble score of the phrase is 49.",
+        "Exactly three words contain a double letter.",
+        "The phrase has 30 letters in total.",
+        "No word contains an S.",
+        "The checksum is the third letter of each word."
+      ],
+      "fails": [
+        {
+          "words": [
+            "melee",
+            "opening",
+            "nominally",
+            "troop",
+            "hunt"
+          ],
+          "constraint": 2
+        },
+        {
+          "words": [
+            "mime",
+            "opening",
+            "nudity",
+            "trip",
+            "heartfelt"
+          ],
+          "constraint": 3
+        },
+        {
+          "words": [
+            "melee",
+            "opening",
+            "nominally",
+            "troop",
+            "hangout"
+          ],
+          "constraint": 4
+        },
+        {
+          "words": [
+            "message",
+            "opposing",
+            "needy",
+            "trap",
+            "hermit"
+          ],
+          "constraint": 5
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "date": "2026-11-10",
+      "m": 4,
+      "n": 3,
+      "constraints": [
+        {
+          "kind": "acrostic",
+          "pos": "first",
+          "category": "flower",
+          "article": "a",
+          "word": "iris"
+        },
+        {
+          "kind": "acrostic",
+          "pos": "last",
+          "category": "insect",
+          "article": "an",
+          "word": "flea"
+        },
+        {
+          "kind": "scrabbleTotal",
+          "value": 26
+        },
+        {
+          "kind": "longestSlot",
+          "slot": 2
+        },
+        {
+          "kind": "totalLetters",
+          "value": 22
+        },
+        {
+          "kind": "doubleLetters",
+          "value": 1
+        }
+      ],
+      "solution": [
+        "itself",
+        "roll",
+        "initiate",
+        "soda"
+      ],
+      "checksum": "slid",
+      "descriptions": [
+        "The first letters spell a flower.",
+        "The last letters spell an insect.",
+        "The Scrabble score of the phrase is 26.",
+        "The third word is the longest.",
+        "The phrase has 22 letters in total.",
+        "Exactly one word contains a double letter.",
+        "The checksum is the third letter of each word."
+      ],
+      "fails": [
+        {
+          "words": [
+            "letting",
+            "iron",
+            "leukemia",
+            "yet"
+          ],
+          "constraint": 2
+        },
+        {
+          "words": [
+            "rotting",
+            "oven",
+            "salsa",
+            "enlist"
+          ],
+          "constraint": 3
+        },
+        {
+          "words": [
+            "inning",
+            "reopen",
+            "inertia",
+            "salt"
+          ],
+          "constraint": 4
+        },
+        {
+          "words": [
+            "itself",
+            "real",
+            "initiate",
+            "soda"
+          ],
+          "constraint": 5
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "date": "2026-11-11",
+      "m": 5,
+      "n": 2,
+      "constraints": [
+        {
+          "kind": "acrostic",
+          "pos": "first",
+          "category": "shape",
+          "article": "a",
+          "word": "wedge"
+        },
+        {
+          "kind": "acrostic",
+          "pos": "last",
+          "category": "month",
+          "article": "a",
+          "word": "march"
+        },
+        {
+          "kind": "everyContains",
+          "letter": "a"
+        },
+        {
+          "kind": "scrabbleTotal",
+          "value": 42
+        },
+        {
+          "kind": "longestSlot",
+          "slot": 4
+        }
+      ],
+      "solution": [
+        "warm",
+        "era",
+        "dealer",
+        "garlic",
+        "establish"
+      ],
+      "checksum": "areas",
+      "descriptions": [
+        "The first letters spell a shape.",
+        "The last letters spell a month.",
+        "Every word contains an A.",
+        "The Scrabble score of the phrase is 42.",
+        "The fifth word is the longest.",
+        "The checksum is the second letter of each word."
+      ],
+      "fails": [
+        {
+          "words": [
+            "him",
+            "enigma",
+            "anger",
+            "rec",
+            "triumph"
+          ],
+          "constraint": 2
+        },
+        {
+          "words": [
+            "warm",
+            "era",
+            "dear",
+            "garlic",
+            "establish"
+          ],
+          "constraint": 3
+        },
+        {
+          "words": [
+            "harm",
+            "enigma",
+            "agar",
+            "realistic",
+            "trash"
+          ],
+          "constraint": 4
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "date": "2026-11-12",
+      "m": 4,
+      "n": 3,
+      "constraints": [
+        {
+          "kind": "acrostic",
+          "pos": "first",
+          "category": "country",
+          "article": "a",
+          "word": "oman"
+        },
+        {
+          "kind": "acrostic",
+          "pos": "last",
+          "category": "fruit",
+          "article": "a",
+          "word": "pear"
         },
         {
           "kind": "doubleLetters",
           "value": 0
         },
         {
-          "kind": "longestSlot",
-          "slot": 0
+          "kind": "scrabbleTotal",
+          "value": 63
+        },
+        {
+          "kind": "totalLetters",
+          "value": 29
+        },
+        {
+          "kind": "everyContains",
+          "letter": "e"
         }
       ],
-      "solution": ["veteran", "enough", "nurse", "undo", "sea"],
-      "checksum": "torda",
+      "solution": [
+        "overlap",
+        "maximize",
+        "academia",
+        "number"
+      ],
+      "checksum": "exam",
       "descriptions": [
-        "The first letters spell a planet.",
-        "Every word has a different length.",
-        "Each word is shorter than the one before.",
-        "The phrase has 25 letters in total.",
-        "The Scrabble score of the phrase is 33.",
-        "No word contains a Z.",
+        "The first letters spell a country.",
+        "The last letters spell a fruit.",
         "No word contains a double letter.",
-        "The first word is the longest.",
+        "The Scrabble score of the phrase is 63.",
+        "The phrase has 29 letters in total.",
+        "Every word contains an E.",
         "The checksum is the third letter of each word."
       ],
       "fails": [
         {
-          "words": ["veteran", "enough", "nurse", "undo", "aer"],
-          "constraint": 0
-        },
-        {
-          "words": ["veteran", "embar", "nausea", "undo", "sea"],
+          "words": [
+            "localized",
+            "azalea",
+            "opponent",
+            "sneeze"
+          ],
           "constraint": 2
         },
         {
-          "words": ["veteran", "enough", "nurse", "undo", "sab"],
+          "words": [
+            "cleanup",
+            "hydrate",
+            "angelica",
+            "dreamer"
+          ],
+          "constraint": 3
+        },
+        {
+          "words": [
+            "crucified",
+            "hysteria",
+            "amethyst",
+            "discharge"
+          ],
           "constraint": 4
         },
         {
-          "words": ["veteran", "enough", "nurse", "undo", "saa"],
-          "constraint": 6
+          "words": [
+            "optimized",
+            "mahatma",
+            "amazement",
+            "note"
+          ],
+          "constraint": 5
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "date": "2026-11-13",
+      "m": 5,
+      "n": 3,
+      "constraints": [
+        {
+          "kind": "acrostic",
+          "pos": "first",
+          "category": "element",
+          "article": "an",
+          "word": "argon"
+        },
+        {
+          "kind": "acrostic",
+          "pos": "last",
+          "category": "ocean or sea",
+          "article": "an",
+          "word": "coral"
+        },
+        {
+          "kind": "scrabbleTotal",
+          "value": 44
+        },
+        {
+          "kind": "totalLetters",
+          "value": 33
+        },
+        {
+          "kind": "everyContains",
+          "letter": "r"
+        }
+      ],
+      "solution": [
+        "allergic",
+        "rhino",
+        "generator",
+        "opera",
+        "normal"
+      ],
+      "checksum": "liner",
+      "descriptions": [
+        "The first letters spell an element.",
+        "The last letters spell an ocean or sea.",
+        "The Scrabble score of the phrase is 44.",
+        "The phrase has 33 letters in total.",
+        "Every word contains an R.",
+        "The checksum is the third letter of each word."
+      ],
+      "fails": [
+        {
+          "words": [
+            "allergic",
+            "rhino",
+            "gunpowder",
+            "opera",
+            "normal"
+          ],
+          "constraint": 2
+        },
+        {
+          "words": [
+            "allergic",
+            "rhino",
+            "gangster",
+            "opera",
+            "normal"
+          ],
+          "constraint": 3
+        },
+        {
+          "words": [
+            "realistic",
+            "also",
+            "discover",
+            "omega",
+            "natural"
+          ],
+          "constraint": 4
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "date": "2026-11-14",
+      "m": 5,
+      "n": 2,
+      "constraints": [
+        {
+          "kind": "acrostic",
+          "pos": "first",
+          "category": "card game",
+          "article": "a",
+          "word": "poker"
+        },
+        {
+          "kind": "acrostic",
+          "pos": "last",
+          "category": "musical instrument",
+          "article": "a",
+          "word": "cello"
+        },
+        {
+          "kind": "scrabbleTotal",
+          "value": 46
+        },
+        {
+          "kind": "doubleLetters",
+          "value": 2
+        },
+        {
+          "kind": "longestSlot",
+          "slot": 3
+        },
+        {
+          "kind": "lengthsDistinct"
+        }
+      ],
+      "solution": [
+        "pacific",
+        "oracle",
+        "kill",
+        "essential",
+        "retro"
+      ],
+      "checksum": "arise",
+      "descriptions": [
+        "The first letters spell a card game.",
+        "The last letters spell a musical instrument.",
+        "The Scrabble score of the phrase is 46.",
+        "Exactly two words contain a double letter.",
+        "The fourth word is the longest.",
+        "Every word has a different length.",
+        "The checksum is the second letter of each word."
+      ],
+      "fails": [
+        {
+          "words": [
+            "psychic",
+            "oppose",
+            "kill",
+            "ethereal",
+            "retro"
+          ],
+          "constraint": 2
+        },
+        {
+          "words": [
+            "pacific",
+            "ole",
+            "kill",
+            "eventful",
+            "retro"
+          ],
+          "constraint": 3
+        },
+        {
+          "words": [
+            "pacific",
+            "ordnance",
+            "keel",
+            "enroll",
+            "ratio"
+          ],
+          "constraint": 4
+        },
+        {
+          "words": [
+            "pacific",
+            "oracle",
+            "kill",
+            "essential",
+            "redo"
+          ],
+          "constraint": 5
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "date": "2026-11-15",
+      "m": 4,
+      "n": 3,
+      "constraints": [
+        {
+          "kind": "acrostic",
+          "pos": "first",
+          "category": "ocean or sea",
+          "article": "an",
+          "word": "dead"
+        },
+        {
+          "kind": "acrostic",
+          "pos": "last",
+          "category": "dog breed",
+          "article": "a",
+          "word": "chow"
+        },
+        {
+          "kind": "lengthsDescending"
+        },
+        {
+          "kind": "scrabbleTotal",
+          "value": 39
+        }
+      ],
+      "solution": [
+        "dynamic",
+        "enough",
+        "audio",
+        "drew"
+      ],
+      "checksum": "node",
+      "descriptions": [
+        "The first letters spell an ocean or sea.",
+        "The last letters spell a dog breed.",
+        "Each word is shorter than the one before.",
+        "The Scrabble score of the phrase is 39.",
+        "The checksum is the third letter of each word."
+      ],
+      "fails": [
+        {
+          "words": [
+            "dynamic",
+            "epoch",
+            "auto",
+            "drew"
+          ],
+          "constraint": 2
+        },
+        {
+          "words": [
+            "domestic",
+            "enough",
+            "audio",
+            "drew"
+          ],
+          "constraint": 3
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "date": "2026-11-16",
+      "m": 5,
+      "n": 3,
+      "constraints": [
+        {
+          "kind": "acrostic",
+          "pos": "first",
+          "category": "animal",
+          "article": "an",
+          "word": "eagle"
+        },
+        {
+          "kind": "acrostic",
+          "pos": "last",
+          "category": "flower",
+          "article": "a",
+          "word": "lilac"
+        },
+        {
+          "kind": "noneContains",
+          "letter": "s"
+        },
+        {
+          "kind": "scrabbleTotal",
+          "value": 46
+        },
+        {
+          "kind": "totalLetters",
+          "value": 27
+        },
+        {
+          "kind": "everyContains",
+          "letter": "l"
+        }
+      ],
+      "solution": [
+        "excel",
+        "alumni",
+        "girl",
+        "lava",
+        "electric"
+      ],
+      "checksum": "curve",
+      "descriptions": [
+        "The first letters spell an animal.",
+        "The last letters spell a flower.",
+        "No word contains an S.",
+        "The Scrabble score of the phrase is 46.",
+        "The phrase has 27 letters in total.",
+        "Every word contains an L.",
+        "The checksum is the third letter of each word."
+      ],
+      "fails": [
+        {
+          "words": [
+            "should",
+            "hula",
+            "alibi",
+            "rivals",
+            "keenly"
+          ],
+          "constraint": 2
+        },
+        {
+          "words": [
+            "level",
+            "lei",
+            "all",
+            "melanoma",
+            "analytic"
+          ],
+          "constraint": 3
+        },
+        {
+          "words": [
+            "pivotal",
+            "alibi",
+            "neonatal",
+            "delta",
+            "analytic"
+          ],
+          "constraint": 4
+        },
+        {
+          "words": [
+            "comical",
+            "alibi",
+            "mammal",
+            "enigma",
+            "lac"
+          ],
+          "constraint": 5
+        }
+      ]
+    },
+    {
+      "number": 10,
+      "date": "2026-11-17",
+      "m": 4,
+      "n": 2,
+      "constraints": [
+        {
+          "kind": "acrostic",
+          "pos": "first",
+          "category": "bird",
+          "article": "a",
+          "word": "swan"
+        },
+        {
+          "kind": "acrostic",
+          "pos": "last",
+          "category": "vegetable",
+          "article": "a",
+          "word": "okra"
+        },
+        {
+          "kind": "totalLetters",
+          "value": 18
+        },
+        {
+          "kind": "scrabbleTotal",
+          "value": 31
+        },
+        {
+          "kind": "longestSlot",
+          "slot": 0
+        },
+        {
+          "kind": "noneContains",
+          "letter": "l"
+        }
+      ],
+      "solution": [
+        "studio",
+        "wreck",
+        "air",
+        "nova"
+      ],
+      "checksum": "trio",
+      "descriptions": [
+        "The first letters spell a bird.",
+        "The last letters spell a vegetable.",
+        "The phrase has 18 letters in total.",
+        "The Scrabble score of the phrase is 31.",
+        "The first word is the longest.",
+        "No word contains an L.",
+        "The checksum is the second letter of each word."
+      ],
+      "fails": [
+        {
+          "words": [
+            "kebab",
+            "ice",
+            "whoa",
+            "ion"
+          ],
+          "constraint": 2
+        },
+        {
+          "words": [
+            "cystic",
+            "romeo",
+            "our",
+            "wren"
+          ],
+          "constraint": 3
+        },
+        {
+          "words": [
+            "crab",
+            "rookie",
+            "opera",
+            "wen"
+          ],
+          "constraint": 4
+        },
+        {
+          "words": [
+            "crystal",
+            "rode",
+            "ole",
+            "week"
+          ],
+          "constraint": 5
         }
       ]
     }

@@ -133,7 +133,7 @@ export function check(
     case "noneContains":
       return words.every((w) => !w.includes(c.letter));
     case "alphabetical":
-      return words.every((w, i) => i === 0 || words[i - 1]! <= w);
+      return words.every((w, i) => i === 0 || words[i - 1]! < w);
     case "doubleLetters":
       return words.filter(hasDouble).length === c.value;
     case "longestSlot": {

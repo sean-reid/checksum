@@ -9,6 +9,7 @@ import {
   type Constraint,
   type StoredPuzzle,
 } from "../../shared/constraints.ts";
+import categoryData from "../../tools/gen/data/categories.json";
 import fixture from "../fixtures/puzzles.json";
 
 interface FixturePuzzle extends StoredPuzzle {
@@ -18,12 +19,8 @@ interface FixturePuzzle extends StoredPuzzle {
 
 const puzzles = (fixture as { puzzles: FixturePuzzle[] }).puzzles;
 
-const categories: Record<string, string[]> = {
-  planet: ["mercury", "venus", "earth", "mars", "jupiter", "saturn", "uranus", "neptune"],
-  animal: ["bear", "frog", "lion", "rabbit"],
-  colour: ["red", "blue", "pink", "gold"],
-};
-const members = (category: string): readonly string[] => categories[category] ?? [];
+const categories = new Map(categoryData.map((c) => [c.name, c.members]));
+const members = (category: string): readonly string[] => categories.get(category) ?? [];
 
 describe("fixture puzzles", () => {
   it("has at least one puzzle", () => {
@@ -98,6 +95,7 @@ describe("check", () => {
     expect(ok({ kind: "noneContains", letter: "e" }, ["tar", "oil"])).toBe(true);
     expect(ok({ kind: "alphabetical" }, ["ant", "bee", "cat"])).toBe(true);
     expect(ok({ kind: "alphabetical" }, ["ant", "cat", "bee"])).toBe(false);
+    expect(ok({ kind: "alphabetical" }, ["ant", "ant", "bee"])).toBe(false);
   });
 
   it("counts words with adjacent equal letters", () => {

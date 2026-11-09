@@ -30,6 +30,24 @@ jobs:
       - run: npm run size
       - run: npm audit --audit-level=high
 
+  core:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/gen
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: tools/gen
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test --release
+      - run: cargo run --release -- fixtures --check
+
   e2e:
     runs-on: ubuntu-latest
     needs: web
