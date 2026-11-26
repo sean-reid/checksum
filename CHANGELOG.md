@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/sean-reid/checksum/compare/checksum-v0.1.0...checksum-v0.2.0) (2026-11-26)
+
+
+### Features
+
+* serve the site from checksum.seanre.id ([#18](https://github.com/sean-reid/checksum/issues/18)) ([a6277ba](https://github.com/sean-reid/checksum/commit/a6277baba8912f0c00aad0cc61533041f608a188))
+
 ## 0.1.0 (2026-11-09)
 
 
