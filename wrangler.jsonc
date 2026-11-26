@@ -13,7 +13,7 @@
   "observability": { "enabled": true },
   "workers_dev": true,
   "preview_urls": true,
-  "routes": [{ "pattern": "checksum.dwainosaur.com", "custom_domain": true }],
+  "routes": [{ "pattern": "checksum.seanre.id", "custom_domain": true }],
   "kv_namespaces": [{ "binding": "PUZZLES", "id": "3f3a19381382454f8c1df5c71f9167b4" }],
   "durable_objects": { "bindings": [{ "name": "RESULTS", "class_name": "DayResults" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["DayResults"] }],
