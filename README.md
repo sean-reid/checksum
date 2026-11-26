@@ -1,6 +1,6 @@
 # checksum
 
-A daily word puzzle at [checksum.dwainosaur.com](https://checksum.dwainosaur.com). Each day names a phrase of four to seven words by its rules alone: the first letters spell a planet, the last letters an animal, every word a different length, a Scrabble score of 70. Exactly one phrase of common words fits. Its checksum is the word you get by taking the same letter from each word, and the day is solved when the phrase in your slots passes every rule. The score is how long that took you.
+A daily word puzzle at [checksum.seanre.id](https://checksum.seanre.id). Each day names a phrase of four to seven words by its rules alone: the first letters spell a planet, the last letters an animal, every word a different length, a Scrabble score of 70. Exactly one phrase of common words fits. Its checksum is the word you get by taking the same letter from each word, and the day is solved when the phrase in your slots passes every rule. The score is how long that took you.
 
 ## Development
 
